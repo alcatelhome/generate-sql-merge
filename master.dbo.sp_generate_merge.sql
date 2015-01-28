@@ -34,7 +34,8 @@ CREATE PROC sp_generate_merge
  @include_use_db bit = 1, -- When 1, includes a USE [DatabaseName] statement at the beginning of the generated batch
  @results_to_text bit = 0, -- When 1, outputs results to grid/messages window. When 0, outputs MERGE statement in an XML fragment.
  @include_rowsaffected bit = 1, -- When 1, a section is added to the end of the batch which outputs rows affected by the MERGE
- @nologo bit = 0 -- When 1, the "About" comment is suppressed from output
+ @nologo bit = 0, -- When 1, the "About" comment is suppressed from output
+ @linked_server varchar(200) = ''
 )
 AS
 BEGIN
@@ -535,14 +536,26 @@ IF @disable_constraints = 1 AND (OBJECT_ID(@Source_Table_Qualified, 'U') IS NOT 
 
 --Output the start of the MERGE statement, qualifying with the schema name only if the caller explicitly specified it
 SET @output += @b + 'MERGE INTO ' + @Target_Table_For_Output + ' AS Target'
-SET @output += @b + 'USING (VALUES'
 
-
+IF @linked_server = '' 
+ BEGIN
+  SET @output += @b + 'USING (VALUES'
+ END
+ELSE
+  SET @output += @b + 'USING ('
+  
 --All the hard work pays off here!!! You'll get your MERGE statement, when the next line executes!
 DECLARE @tab TABLE (val NVARCHAR(max));
-INSERT INTO @tab
-EXEC (@Actual_Values)
 
+--When a linked server is passed, replace the 'values' with linked server sql statement
+IF @linked_server = '' 
+ BEGIN
+  INSERT INTO @tab
+  EXEC (@Actual_Values)
+ END
+ELSE
+ INSERT INTO @tab VALUES ('SELECT * ' + COALESCE(@from,'FROM [' + @linked_server + '].' + DB_NAME() + '.' + @schema + '.' + @table_name))
+ 
 IF (SELECT COUNT(*) FROM @tab) <> 0 -- Ensure that rows were returned, otherwise the MERGE statement will get nullified.
 BEGIN
  SET @output += CAST((SELECT @b + val FROM @tab FOR XML PATH('')) AS XML).value('.', 'VARCHAR(MAX)');

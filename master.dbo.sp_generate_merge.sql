@@ -554,7 +554,7 @@ IF @linked_server = ''
   EXEC (@Actual_Values)
  END
 ELSE
- INSERT INTO @tab VALUES ('SELECT * ' + COALESCE(@from,'FROM [' + @linked_server + '].' + DB_NAME() + '.' + @schema + '.' + @table_name))
+ INSERT INTO @tab VALUES ('SELECT ' + @Column_List + ' ' + COALESCE(@from,'FROM [' + @linked_server + '].' + DB_NAME() + '.' + @schema + '.' + @table_name))
  
 IF (SELECT COUNT(*) FROM @tab) <> 0 -- Ensure that rows were returned, otherwise the MERGE statement will get nullified.
 BEGIN

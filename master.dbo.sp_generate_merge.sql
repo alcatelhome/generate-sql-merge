@@ -35,7 +35,7 @@ CREATE PROC sp_generate_merge
  @results_to_text bit = 0, -- When 1, outputs results to grid/messages window. When 0, outputs MERGE statement in an XML fragment.
  @include_rowsaffected bit = 1, -- When 1, a section is added to the end of the batch which outputs rows affected by the MERGE
  @nologo bit = 0, -- When 1, the "About" comment is suppressed from output
- @linked_server varchar(200) = ''
+ @linked_server varchar(200) = ''  -- When <> '', sql statement is constructed to select * from linked server in lieu of 'VALUES'
 )
 AS
 BEGIN

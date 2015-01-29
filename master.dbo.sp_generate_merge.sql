@@ -35,7 +35,8 @@ CREATE PROC sp_generate_merge
  @results_to_text bit = 0, -- When 1, outputs results to grid/messages window. When 0, outputs MERGE statement in an XML fragment.
  @include_rowsaffected bit = 1, -- When 1, a section is added to the end of the batch which outputs rows affected by the MERGE
  @nologo bit = 0, -- When 1, the "About" comment is suppressed from output
- @linked_server varchar(200) = ''  -- When <> '', sql statement is constructed to select * from linked server in lieu of 'VALUES'
+ @linked_server varchar(200) = '',  -- When <> '', sql statement is constructed to select * from linked server in lieu of 'VALUES'
+ @go_char varchar(1) = 'GO'
 )
 AS
 BEGIN
@@ -502,7 +503,7 @@ BEGIN
 	DECLARE @db varchar(120);
 	SET @db = 'USE ' + DB_NAME();
 	SET @output += @b + @db;
-	SET @output += @b + 'GO';
+	SET @output += @b + @go_char;
 	SET @output += @b + '';
 END
 
@@ -588,7 +589,7 @@ SET @output += @b + ' VALUES(' + REPLACE(@Column_List, '[', 'Source.[') + ')'
 SET @output += @b + 'WHEN NOT MATCHED BY SOURCE THEN '
 SET @output += @b + ' DELETE;'
 SET @output += @b + ''
-SET @output += @b + 'GO'
+SET @output += @b + @go_char
 
 --Display the number of affected rows to the user, or report if an error occurred---
 IF @include_rowsaffected = 1
@@ -604,7 +605,7 @@ BEGIN
  SET @output += @b + ' BEGIN'
  SET @output += @b + ' PRINT ''' + @Target_Table_For_Output + ' rows affected by MERGE: '' + CAST(@mergeCount AS VARCHAR(100));';
  SET @output += @b + ' END'
- SET @output += @b + 'GO'
+ SET @output += @b + @go_char
  SET @output += @b + ''
 END
 
@@ -612,7 +613,7 @@ END
 IF @disable_constraints = 1 AND (OBJECT_ID(@Source_Table_Qualified, 'U') IS NOT NULL)
  BEGIN
  SET @output += @b + 'ALTER TABLE ' + @Target_Table_For_Output + ' CHECK CONSTRAINT ALL' --Code to enable the previously disabled constraints
- SET @output += @b + 'GO'
+ SET @output += @b + @go_char
  END
 
 
@@ -620,13 +621,13 @@ IF @disable_constraints = 1 AND (OBJECT_ID(@Source_Table_Qualified, 'U') IS NOT 
 IF (LEN(@IDN) <> 0)
  BEGIN
  SET @output += @b + 'SET IDENTITY_INSERT ' + @Target_Table_For_Output + ' OFF'
- SET @output += @b + 'GO'
+ SET @output += @b + @go_char
  END
 
 IF (@include_rowsaffected = 1)
 BEGIN
  SET @output += @b + 'SET NOCOUNT OFF'
- SET @output += @b + 'GO'
+ SET @output += @b + @go_char
 END
 
 SET @output += @b + ''

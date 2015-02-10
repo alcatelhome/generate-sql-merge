@@ -236,9 +236,9 @@ ELSE
 
 --Variable declarations
 DECLARE @Column_ID int, 
- @Column_List varchar(8000), 
- @Column_List_For_Update varchar(8000), 
- @Column_List_For_Check varchar(8000), 
+ @Column_List varchar(Max), 
+ @Column_List_For_Update varchar(Max), 
+ @Column_List_For_Check varchar(Max), 
  @Column_Name varchar(128), 
  @Column_Name_Unquoted varchar(128), 
  @Data_Type varchar(128), 
